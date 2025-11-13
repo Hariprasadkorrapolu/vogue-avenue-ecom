@@ -1,13 +1,41 @@
-import { ShoppingBag, Heart, User, Search, Menu } from "lucide-react";
+import { ShoppingBag, Heart, User, Search, Menu, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { NavLink } from "@/components/NavLink";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const Navbar = () => {
   const [cartCount] = useState(0);
-  const [wishlistCount] = useState(0);
+  const [wishlistCount, setWishlistCount] = useState(0);
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      fetchWishlistCount();
+    }
+  }, [user]);
+
+  const fetchWishlistCount = async () => {
+    if (!user) return;
+    
+    const { count } = await supabase
+      .from("wishlists")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", user.id);
+    
+    setWishlistCount(count || 0);
+  };
 
   const navLinks = [
     { to: "/", label: "Home" },
@@ -55,7 +83,12 @@ const Navbar = () => {
 
           {/* Actions */}
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="icon" className="hidden md:flex relative">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="hidden md:flex relative"
+              onClick={() => user ? navigate("/profile") : navigate("/auth")}
+            >
               <Heart className="h-5 w-5" />
               {wishlistCount > 0 && (
                 <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-accent text-accent-foreground text-xs flex items-center justify-center">
@@ -73,9 +106,28 @@ const Navbar = () => {
               )}
             </Button>
 
-            <Button variant="ghost" size="icon">
-              <User className="h-5 w-5" />
-            </Button>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <User className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => navigate("/profile")}>
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={signOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button variant="ghost" size="icon" onClick={() => navigate("/auth")}>
+                <User className="h-5 w-5" />
+              </Button>
+            )}
 
             {/* Mobile Menu */}
             <Sheet>

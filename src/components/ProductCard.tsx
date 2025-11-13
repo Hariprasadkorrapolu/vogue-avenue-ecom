@@ -2,8 +2,11 @@ import { Heart, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface ProductCardProps {
   id: string;
@@ -18,15 +21,74 @@ interface ProductCardProps {
 const ProductCard = ({ id, name, price, salePrice, image, category, isNew }: ProductCardProps) => {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      checkWishlistStatus();
+    }
+  }, [user, id]);
+
+  const checkWishlistStatus = async () => {
+    if (!user) return;
+
+    const { data } = await supabase
+      .from("wishlists")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("product_id", id)
+      .maybeSingle();
+
+    setIsWishlisted(!!data);
+  };
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
     // TODO: Add to cart logic
+    toast.success("Added to cart!");
   };
 
-  const handleToggleWishlist = (e: React.MouseEvent) => {
+  const handleToggleWishlist = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsWishlisted(!isWishlisted);
+    
+    if (!user) {
+      toast.error("Please sign in to add to wishlist");
+      navigate("/auth");
+      return;
+    }
+
+    if (isWishlisted) {
+      // Remove from wishlist
+      const { error } = await supabase
+        .from("wishlists")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("product_id", id);
+
+      if (error) {
+        toast.error("Failed to remove from wishlist");
+      } else {
+        setIsWishlisted(false);
+        toast.success("Removed from wishlist");
+      }
+    } else {
+      // Add to wishlist
+      const { error } = await supabase.from("wishlists").insert({
+        user_id: user.id,
+        product_id: id,
+        product_name: name,
+        product_price: salePrice || price,
+        product_image: image,
+        product_category: category,
+      });
+
+      if (error) {
+        toast.error("Failed to add to wishlist");
+      } else {
+        setIsWishlisted(true);
+        toast.success("Added to wishlist!");
+      }
+    }
   };
 
   return (
