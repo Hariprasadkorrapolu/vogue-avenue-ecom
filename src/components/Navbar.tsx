@@ -87,7 +87,7 @@ const Navbar = () => {
               variant="ghost" 
               size="icon" 
               className="hidden md:flex relative"
-              onClick={() => user ? navigate("/profile") : navigate("/auth")}
+              onClick={() => user ? navigate("/wishlist") : navigate("/auth")}
             >
               <Heart className="h-5 w-5" />
               {wishlistCount > 0 && (
