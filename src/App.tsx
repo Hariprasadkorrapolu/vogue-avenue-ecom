@@ -10,6 +10,9 @@ import ProductDetail from "./pages/ProductDetail";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import Wishlist from "./pages/Wishlist";
+import Men from "./pages/Men";
+import Women from "./pages/Women";
+import Sale from "./pages/Sale";
 import NotFound from "./pages/NotFound";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -27,6 +30,9 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/products" element={<Products />} />
+            <Route path="/men" element={<Men />} />
+            <Route path="/women" element={<Women />} />
+            <Route path="/sale" element={<Sale />} />
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/profile" element={<Profile />} />
