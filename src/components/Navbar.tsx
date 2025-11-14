@@ -11,13 +11,14 @@ import {
 import { NavLink } from "@/components/NavLink";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCart } from "@/contexts/CartContext";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 const Navbar = () => {
-  const [cartCount] = useState(0);
   const [wishlistCount, setWishlistCount] = useState(0);
   const { user, signOut } = useAuth();
+  const { cartCount } = useCart();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -97,7 +98,12 @@ const Navbar = () => {
               )}
             </Button>
 
-            <Button variant="ghost" size="icon" className="relative">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="relative"
+              onClick={() => navigate("/cart")}
+            >
               <ShoppingBag className="h-5 w-5" />
               {cartCount > 0 && (
                 <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-accent text-accent-foreground text-xs flex items-center justify-center">

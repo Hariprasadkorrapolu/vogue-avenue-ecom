@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -22,6 +23,7 @@ const ProductCard = ({ id, name, price, salePrice, image, category, isNew }: Pro
   const [isWishlisted, setIsWishlisted] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { addToCart } = useCart();
 
   useEffect(() => {
     if (user) {
@@ -42,10 +44,19 @@ const ProductCard = ({ id, name, price, salePrice, image, category, isNew }: Pro
     setIsWishlisted(!!data);
   };
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    // TODO: Add to cart logic
-    toast.success("Added to cart!");
+    
+    await addToCart({
+      product_id: id,
+      product_name: name,
+      product_price: salePrice || price,
+      product_image: image,
+      product_category: category,
+      quantity: 1,
+      size: null,
+      color: null,
+    });
   };
 
   const handleToggleWishlist = async (e: React.MouseEvent) => {
